@@ -240,6 +240,14 @@
   body[data-lang="cn"] [data-trans-block="cn"] { display: block; }
   [data-trans-block] { display: none; }
 </style>
+<!-- Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZVJEQYVXVW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-ZVJEQYVXVW');
+</script>
 </head>
 <body data-lang="en">
 
@@ -608,6 +616,10 @@
     body.dataset.lang = lang;
     buttons.forEach(b => b.classList.toggle('active', b.dataset.langBtn === lang));
     document.documentElement.lang = langMap[lang] || 'en';
+    // GA4 이벤트: 언어 전환
+    if (typeof gtag === 'function') {
+      gtag('event', 'language_switch', { 'selected_language': lang });
+    }
     // 언어별 href 적용 — data-href-{lang} 속성이 있는 모든 요소
     document.querySelectorAll('[data-href-' + lang + ']').forEach(el => {
       const url = el.getAttribute('data-href-' + lang);
@@ -631,6 +643,34 @@
 
   // 초기 언어 (body[data-lang])에 맞춰 href 적용
   applyLanguage(body.dataset.lang || 'en');
+
+  // GA4 이벤트: 예약 CTA 클릭 (가장 중요한 전환 이벤트)
+  document.querySelectorAll('.cta-reserve').forEach(el => {
+    el.addEventListener('click', () => {
+      if (typeof gtag === 'function') {
+        gtag('event', 'cta_reserve_click', {
+          'language': body.dataset.lang || 'en',
+          'destination': 'celitaclinic_reservation'
+        });
+      }
+    });
+  });
+
+  // GA4 이벤트: 프로모션 카드 클릭 (어떤 이벤트가 인기인지)
+  document.querySelectorAll('.promo-card').forEach((el, idx) => {
+    el.addEventListener('click', () => {
+      if (typeof gtag === 'function') {
+        // 카드 안의 제목 텍스트로 어떤 카드인지 식별
+        const title = el.querySelector('h3, .promo-title, [data-trans-block]');
+        const titleText = title ? title.textContent.trim().substring(0, 60) : ('card_' + (idx + 1));
+        gtag('event', 'promo_card_click', {
+          'language': body.dataset.lang || 'en',
+          'card_position': idx + 1,
+          'card_title': titleText
+        });
+      }
+    });
+  });
 </script>
 
 </body>
